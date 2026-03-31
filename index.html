@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fixed AR Lives Game</title>
+<title>AR Clean Base Game</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -16,12 +16,8 @@
 
 <script>
 let score = 0;
-let lives = 3;
-let gameOver = false;
-let despawnTimer = null;
-let currentTarget = null;
 
-/* FLOAT */
+/* SIMPLE FLOAT */
 AFRAME.registerComponent('float', {
   init: function () {
     this.startY = this.el.object3D.position.y;
@@ -34,163 +30,71 @@ AFRAME.registerComponent('float', {
   }
 });
 
-/* HUD */
-function updateHUD() {
-  document.querySelector("#scoreText").setAttribute("value", "Score: " + score);
-  document.querySelector("#lifeText").setAttribute("value", "Lives: " + lives);
-}
-
-/* GAME OVER */
-function endGame() {
-  gameOver = true;
-  clearTimeout(despawnTimer);
-
-  document.querySelector("#gameOverText").setAttribute("visible", true);
-  document.querySelector("#restartEntity").setAttribute("visible", true);
-}
-
-/* RESTART */
-function restartGame() {
-  score = 0;
-  lives = 3;
-  gameOver = false;
-
-  document.querySelector("#gameOverText").setAttribute("visible", false);
-  document.querySelector("#restartEntity").setAttribute("visible", false);
-
-  updateHUD();
-  spawnObject();
-}
-
-/* SPAWN */
+/* SPAWN OBJECT */
 function spawnObject() {
-  if (gameOver) return;
+  let obj = document.querySelector("#target");
 
-  let target = document.querySelector("#target");
+  let x = (Math.random() - 0.5) * 1.2;
+  let y = (Math.random() - 0.5) * 0.8;
 
-  let x = (Math.random() - 0.5) * 1.0;
-  let y = (Math.random() - 0.5) * 0.6;
-
-  target.setAttribute("position", `${x} ${y} -1.5`);
-  target.setAttribute("visible", true);
-  target.setAttribute("scale", "1 1 1");
-  target.setAttribute("collected", "false");
-
-  currentTarget = target;
-
-  clearTimeout(despawnTimer);
-
-  despawnTimer = setTimeout(() => {
-    if (gameOver) return;
-    if (target.getAttribute("collected") === "true") return;
-
-    target.setAttribute("visible", false);
-
-    lives--;
-    updateHUD();
-
-    if (lives <= 0) {
-      endGame();
-    } else {
-      spawnObject();
-    }
-  }, 2500);
+  obj.setAttribute("position", `${x} ${y} -1.5`);
+  obj.setAttribute("visible", true);
+  obj.setAttribute("scale", "1 1 1");
+  obj.setAttribute("collected", "false");
 }
 
-/* COLLECT */
+/* COLLECT LOGIC */
 AFRAME.registerComponent('collect', {
   init: function () {
-
     this.el.addEventListener('click', () => {
-      if (gameOver) return;
+
       if (this.el.getAttribute("collected") === "true") return;
 
       this.el.setAttribute("collected", "true");
 
-      this.el.setAttribute("scale", "0.3 0.3 0.3");
+      // pop effect
+      this.el.setAttribute("scale", "0.4 0.4 0.4");
 
       setTimeout(() => {
         this.el.setAttribute("visible", false);
       }, 100);
 
+      // score update
       score++;
-      updateHUD();
+      document.querySelector("#scoreText")
+        .setAttribute("value", "Score: " + score);
 
-      clearTimeout(despawnTimer);
-
+      // respawn next object
       setTimeout(spawnObject, 400);
     });
   }
 });
 
-/* START */
+/* START GAME */
 setTimeout(spawnObject, 1000);
-
-/* RESTART CLICK */
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#restartBox")
-    .addEventListener("click", restartGame);
-});
 </script>
 
 <a-scene ar>
 
-  <!-- CAMERA (FIXED RAYCASTING) -->
-  <a-camera
-    cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable">
+  <!-- CAMERA -->
+  <a-camera cursor="rayOrigin: mouse"></a-camera>
 
-  </a-camera>
-
-  <!-- HUD -->
+  <!-- SCORE UI -->
   <a-entity position="0 0 -1">
-    <a-text id="scoreText" value="Score: 0"
-      align="center" color="yellow" width="2"></a-text>
-
-    <a-text id="lifeText" value="Lives: 3"
-      position="0 -0.25 0"
-      align="center" color="red" width="2"></a-text>
-  </a-entity>
-
-  <!-- GAME OVER -->
-  <a-text id="gameOverText"
-    value="GAME OVER"
-    position="0 0 -1"
-    align="center"
-    color="red"
-    width="3"
-    visible="false">
-  </a-text>
-
-  <!-- RESTART -->
-  <a-entity id="restartEntity"
-    position="0 -0.5 -1"
-    visible="false"
-    class="clickable">
-
-    <a-box id="restartBox"
-      color="green"
-      depth="0.1"
-      height="0.25"
-      width="0.7">
-    </a-box>
-
-    <a-text value="RESTART"
+    <a-text id="scoreText"
+      value="Score: 0"
       align="center"
-      color="white"
-      position="0 0 0.06"
+      color="yellow"
       width="2">
     </a-text>
-
   </a-entity>
 
-  <!-- TARGET -->
+  <!-- TARGET OBJECT -->
   <a-sphere
     id="target"
     radius="0.2"
     color="yellow"
     visible="false"
-    class="clickable"
     float
     collect>
   </a-sphere>
