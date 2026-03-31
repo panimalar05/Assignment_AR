@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Final Game</title>
+<title>AR Final Game - Upgraded</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
 
 <style>
-body { margin: 0; overflow: hidden; }
+  body { margin: 0; overflow: hidden; }
 </style>
 </head>
 
@@ -17,76 +17,100 @@ body { margin: 0; overflow: hidden; }
 <script>
 let score = 0;
 
-// 🎯 FLOAT COMPONENT (WORKS IN AR)
+// 🎯 FLOAT ANIMATION
 AFRAME.registerComponent('float', {
-  schema: { speed: {default: 0.002} },
+  schema: { speed: { default: 0.002 } },
   init: function () {
     this.startY = this.el.object3D.position.y;
-    this.t = 0;
+    this.t = Math.random() * 10;
   },
   tick: function () {
     this.t += this.data.speed;
-    let newY = this.startY + Math.sin(this.t) * 0.2;
-    this.el.object3D.position.y = newY;
+    this.el.object3D.position.y =
+      this.startY + Math.sin(this.t) * 0.15;
   }
 });
 
-// 🎯 SPAWN RANDOM
-function spawnObject(){
+// 🎯 SPAWN OBJECT
+function spawnObject() {
   let target = document.querySelector("#target");
 
-  let x = (Math.random() - 0.5) * 2;
-  let y = (Math.random() - 0.5) * 1;
+  let x = (Math.random() - 0.5) * 1.2;
+  let y = (Math.random() - 0.5) * 0.8;
 
-  target.setAttribute('position', `${x} ${y} -1.5`);
-  target.setAttribute('visible', true);
+  let colors = ["red", "yellow", "green", "blue", "pink", "orange"];
+  let randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+  target.setAttribute("position", `${x} ${y} -1.5`);
+  target.setAttribute("color", randomColor);
+  target.setAttribute("visible", true);
+  target.setAttribute("scale", "1 1 1");
 }
 
-// 👀 GAZE COLLECT
+// 🎯 COLLECT LOGIC
 AFRAME.registerComponent('collect', {
   init: function () {
     this.el.addEventListener('mouseenter', () => {
 
-      this.el.setAttribute('visible', false);
+      // pop animation
+      this.el.setAttribute('scale', '0.4 0.4 0.4');
 
+      setTimeout(() => {
+        this.el.setAttribute('visible', false);
+      }, 100);
+
+      // score update
       score++;
-      document.querySelector("#score")
-        .setAttribute('value', "Score: " + score);
+      document.querySelector("#score").setAttribute(
+        "value",
+        "Score: " + score
+      );
+
+      // sound
+      let sound = document.querySelector("#popSound");
+      sound.currentTime = 0;
+      sound.play();
+
+      // difficulty increase spawn speed
+      let delay = Math.max(300, 900 - score * 25);
 
       setTimeout(() => {
         spawnObject();
-      }, 800);
+      }, delay);
     });
   }
 });
 
 // first spawn
-setTimeout(() => {
-  spawnObject();
-}, 2000);
+setTimeout(spawnObject, 1500);
 
 </script>
 
+<!-- 🔊 AUDIO -->
+<audio id="popSound"
+  src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2b5c8f3b.mp3">
+</audio>
+
 <a-scene ar>
 
-  <!-- 📷 Camera -->
+  <!-- 📷 CAMERA -->
   <a-camera>
 
-    <!-- 🎯 Cursor -->
-    <a-cursor fuse="true" fuse-timeout="800"></a-cursor>
+    <a-cursor fuse="true" fuse-timeout="700"></a-cursor>
 
-    <!-- 📊 Score -->
-    <a-text id="score"
-      value="Score: 0"
-      position="0 0 -1"
-      align="center"
-      color="yellow"
-      width="2">
-    </a-text>
+    <!-- 📊 HUD SCORE -->
+    <a-entity position="0 0 -1">
+      <a-text id="score"
+        value="Score: 0"
+        align="center"
+        color="yellow"
+        width="2">
+      </a-text>
+    </a-entity>
 
   </a-camera>
 
-  <!-- 🟡 Target -->
+  <!-- 🎯 TARGET -->
   <a-sphere
     id="target"
     radius="0.2"
