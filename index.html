@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Game - Lives System</title>
+<title>AR Lives Game - Final Fixed Version</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -20,57 +20,47 @@ let lives = 3;
 let gameOver = false;
 let despawnTimer = null;
 
-// 🎯 FLOAT
+/* FLOAT ANIMATION */
 AFRAME.registerComponent('float', {
-  schema: { speed: { default: 0.002 } },
   init: function () {
     this.startY = this.el.object3D.position.y;
     this.t = Math.random() * 10;
   },
   tick: function () {
-    this.t += this.data.speed;
+    this.t += 0.002;
     this.el.object3D.position.y =
       this.startY + Math.sin(this.t) * 0.15;
   }
 });
 
-// 📊 UPDATE HUD
+/* UPDATE HUD */
 function updateHUD() {
-  document.querySelector("#scoreText")
-    .setAttribute("value", "Score: " + score);
-
-  document.querySelector("#lifeText")
-    .setAttribute("value", "Lives: " + lives);
+  document.querySelector("#scoreText").setAttribute("value", "Score: " + score);
+  document.querySelector("#lifeText").setAttribute("value", "Lives: " + lives);
 }
 
-// 💀 GAME OVER
+/* GAME OVER */
 function endGame() {
   gameOver = true;
 
-  document.querySelector("#gameOverText")
-    .setAttribute("visible", true);
-
-  document.querySelector("#restartBtn")
-    .setAttribute("visible", true);
+  document.querySelector("#gameOverText").setAttribute("visible", true);
+  document.querySelector("#restartEntity").setAttribute("visible", true);
 }
 
-// 🔁 RESTART GAME
+/* RESTART GAME */
 function restartGame() {
   score = 0;
   lives = 3;
   gameOver = false;
 
-  document.querySelector("#gameOverText")
-    .setAttribute("visible", false);
-
-  document.querySelector("#restartBtn")
-    .setAttribute("visible", false);
+  document.querySelector("#gameOverText").setAttribute("visible", false);
+  document.querySelector("#restartEntity").setAttribute("visible", false);
 
   updateHUD();
   spawnObject();
 }
 
-// 🎯 SPAWN OBJECT
+/* SPAWN OBJECT */
 function spawnObject() {
   if (gameOver) return;
 
@@ -82,17 +72,12 @@ function spawnObject() {
   target.setAttribute("position", `${x} ${y} -1.5`);
   target.setAttribute("visible", true);
   target.setAttribute("scale", "1 1 1");
-  target.setAttribute("color", "yellow");
-
   target.setAttribute("collected", "false");
 
-  // ⏱️ DESPAWN TIMER (MISS CHECK)
   clearTimeout(despawnTimer);
 
   despawnTimer = setTimeout(() => {
-    let collected = target.getAttribute("collected");
-
-    if (collected === "false" && !gameOver) {
+    if (!gameOver && target.getAttribute("collected") === "false") {
       target.setAttribute("visible", false);
 
       lives--;
@@ -107,47 +92,47 @@ function spawnObject() {
   }, 2500);
 }
 
-// 🎯 COLLECT SYSTEM
+/* COLLECT LOGIC */
 AFRAME.registerComponent('collect', {
   init: function () {
-    this.el.addEventListener('mouseenter', () => {
+    this.el.addEventListener('click', () => {
 
       if (gameOver) return;
-
-      let collected = this.el.getAttribute("collected");
-      if (collected === "true") return;
+      if (this.el.getAttribute("collected") === "true") return;
 
       this.el.setAttribute("collected", "true");
 
-      // hide + pop
+      // pop effect
       this.el.setAttribute("scale", "0.4 0.4 0.4");
 
       setTimeout(() => {
         this.el.setAttribute("visible", false);
       }, 100);
 
-      // score update
       score++;
       updateHUD();
 
-      // spawn next
       setTimeout(() => {
         spawnObject();
-      }, 500);
+      }, 400);
     });
   }
 });
 
-// initial spawn
+/* START */
 setTimeout(spawnObject, 1000);
 
+/* RESTART CLICK HANDLER */
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector("#restartBox").addEventListener("click", restartGame);
+});
 </script>
 
 <a-scene ar>
 
   <!-- CAMERA -->
   <a-camera>
-    <a-cursor fuse="true" fuse-timeout="700"></a-cursor>
+    <a-cursor rayOrigin="mouse"></a-cursor>
 
     <!-- HUD -->
     <a-entity position="0 0 -1">
@@ -155,7 +140,7 @@ setTimeout(spawnObject, 1000);
         align="center" color="yellow" width="2"></a-text>
 
       <a-text id="lifeText" value="Lives: 3"
-        position="0 -0.2 0"
+        position="0 -0.25 0"
         align="center" color="red" width="2"></a-text>
     </a-entity>
 
@@ -169,25 +154,26 @@ setTimeout(spawnObject, 1000);
       visible="false">
     </a-text>
 
-    <!-- RESTART BUTTON -->
-    <a-box id="restartBtn"
+    <!-- RESTART BUTTON ENTITY -->
+    <a-entity id="restartEntity"
       position="0 -0.5 -1"
-      depth="0.1"
-      height="0.2"
-      width="0.6"
-      color="green"
-      visible="false"
-      onclick="restartGame()">
-    </a-box>
+      visible="false">
 
-    <a-text value="RESTART"
-      position="0 -0.5 -0.9"
-      align="center"
-      color="white"
-      width="2"
-      visible="false"
-      id="restartText">
-    </a-text>
+      <a-box id="restartBox"
+        color="green"
+        depth="0.1"
+        height="0.25"
+        width="0.7">
+      </a-box>
+
+      <a-text value="RESTART"
+        align="center"
+        color="white"
+        position="0 0 0.06"
+        width="2">
+      </a-text>
+
+    </a-entity>
 
   </a-camera>
 
