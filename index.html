@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Magic Effects</title>
+<title>AR Falling Game</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -15,7 +15,7 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// AR logic
+// surface detection
 AFRAME.registerComponent('ar-logic',{
   tick : function(){
     let cam = document.querySelector("#cam");
@@ -30,57 +30,90 @@ AFRAME.registerComponent('ar-logic',{
   }
 });
 
-// ✨ MAGIC EFFECT
-window.addEventListener('touchstart', function(){
+// game variables
+let score = 0;
+let falling = false;
 
-  let pos = document.querySelector("#circle").getAttribute('position');
+// spawn falling object
+function spawnObject(pos){
+  let target = document.querySelector("#target");
 
-  let effect = document.createElement('a-ring');
-
-  effect.setAttribute('position', pos);
-  effect.setAttribute('rotation', '-90 0 0');
-
-  effect.setAttribute('radius-inner', '0.05');
-  effect.setAttribute('radius-outer', '0.06');
-
-  effect.setAttribute('color', '#00ffff');
-  effect.setAttribute('opacity', '0.8');
-
-  effect.setAttribute('animation__scale', {
-    property: 'scale',
-    to: '3 3 3',
-    dur: 800,
-    easing: 'easeOutQuad'
+  target.setAttribute('position', {
+    x: pos.x,
+    y: pos.y + 1.5,
+    z: pos.z
   });
 
-  effect.setAttribute('animation__fade', {
-    property: 'opacity',
-    to: '0',
-    dur: 800
+  target.setAttribute('visible', true);
+
+  target.setAttribute('animation', {
+    property: 'position',
+    to: `${pos.x} ${pos.y} ${pos.z}`,
+    dur: 2000,
+    easing: 'linear'
   });
+
+  falling = true;
 
   setTimeout(() => {
-    effect.parentNode.removeChild(effect);
-  }, 800);
+    if(falling){
+      target.setAttribute('visible', false);
+      falling = false;
+    }
+  }, 2000);
+}
 
-  document.querySelector('a-scene').appendChild(effect);
+// tap logic
+window.addEventListener('click', function(){
+
+  let circle = document.querySelector("#circle");
+  let target = document.querySelector("#target");
+
+  let pos = circle.getAttribute('position');
+
+  if(!falling){
+    spawnObject(pos);
+  }
+  else {
+    target.setAttribute('visible', false);
+    falling = false;
+
+    score++;
+    document.querySelector("#score")
+      .setAttribute('value', "Score: " + score);
+  }
 
 });
 </script>
 
 <a-scene ar ar-logic>
 
-  <!-- Camera -->
-  <a-camera id="cam" ar-raycaster raycaster="objects:none;"></a-camera>
+  <!-- camera -->
+  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
 
-  <!-- Placement indicator -->
-  <a-ring
-    id="circle"
+    <a-text id="score"
+      value="Score: 0"
+      position="0 -0.2 -0.5"
+      align="center"
+      width="2">
+    </a-text>
+
+  </a-camera>
+
+  <!-- surface indicator -->
+  <a-ring id="circle"
     rotation="-90 0 0"
     radius-inner="0.01"
     radius-outer="0.02"
     color="white">
   </a-ring>
+
+  <!-- falling object -->
+  <a-sphere id="target"
+    radius="0.08"
+    color="red"
+    visible="false">
+  </a-sphere>
 
 </a-scene>
 
