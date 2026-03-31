@@ -15,18 +15,23 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// 🔹 Surface detection
+// 🔹 HUD
+function showMessage(message){
+  let hud = document.querySelector("#hud");
+  if(hud) hud.setAttribute('value', message);
+}
+
+// 🔹 AR logic (same as your working code)
 AFRAME.registerComponent('ar-logic',{
   tick : function(){
     let cam = document.querySelector("#cam");
+    if(!cam) return;
+
+    let collision = cam.components.raycaster.getIntersection(this.el);
+    if(!collision) return;
+
     let circle = document.querySelector("#circle");
-
-    if(!cam || !circle) return;
-
-    let intersection = cam.components.raycaster.getIntersection(this.el);
-    if(!intersection) return;
-
-    circle.setAttribute('position', intersection.point);
+    circle.setAttribute('position', collision.point);
   }
 });
 
@@ -34,42 +39,40 @@ AFRAME.registerComponent('ar-logic',{
 let score = 0;
 let falling = false;
 
-// 🔹 Spawn object (FIXED POSITION LOGIC)
+// 🔹 Spawn object (SIMPLE + SAFE)
 function spawnObject(pos){
   let target = document.querySelector("#target");
 
-  // Always spawn slightly in front of camera view
   target.setAttribute('position', {
     x: pos.x,
-    y: pos.y + 1,
-    z: pos.z - 1
+    y: pos.y + 0.5,
+    z: pos.z
   });
 
   target.setAttribute('visible', true);
 
-  // Falling animation
+  // falling
   target.setAttribute('animation', {
     property: 'position',
-    to: `${pos.x} ${pos.y} ${pos.z - 1}`,
-    dur: 2000,
+    to: `${pos.x} ${pos.y} ${pos.z}`,
+    dur: 1500,
     easing: 'linear'
   });
 
   falling = true;
 
-  // Auto disappear if missed
   setTimeout(() => {
     if(falling){
       target.setAttribute('visible', false);
       falling = false;
     }
-  }, 2000);
+  }, 1500);
 }
 
-// 🔹 Tap event (WORKS IN AR)
-document.addEventListener('click', function(){
+// 🔹 IMPORTANT: use touchstart (your setup worked with it earlier)
+window.addEventListener('touchstart', function(){
 
-  console.log("Tapped"); // debug
+  showMessage("Tapped!");
 
   let circle = document.querySelector("#circle");
   let target = document.querySelector("#target");
@@ -94,8 +97,9 @@ document.addEventListener('click', function(){
 <a-scene ar ar-logic>
 
   <!-- Camera -->
-  <a-camera id="cam" ar-raycaster>
+  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
 
+    <!-- Score -->
     <a-text id="score"
       value="Score: 0"
       position="0 -0.2 -0.5"
@@ -103,15 +107,15 @@ document.addEventListener('click', function(){
       width="2">
     </a-text>
 
-  </a-camera>
+    <!-- HUD -->
+    <a-text id="hud"
+      value="Starting..."
+      position="0 -0.3 -0.5"
+      align="center"
+      width="2">
+    </a-text>
 
-  <!-- Invisible ground (IMPORTANT for raycasting) -->
-  <a-plane 
-    rotation="-90 0 0"
-    width="50"
-    height="50"
-    visible="false">
-  </a-plane>
+  </a-camera>
 
   <!-- Surface indicator -->
   <a-ring
