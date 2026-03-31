@@ -2,12 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Portal + Box</title>
+<title>AR Magic Effects</title>
 
-<!-- A-Frame -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-
-<!-- Your local AR library -->
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
 
 <style>
@@ -18,76 +15,55 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// 📌 HUD message
-function showMessage(message){
-  let hud = document.querySelector("#hud");
-  if(hud) hud.setAttribute('value', message);
-}
-
-// 📌 AR logic (surface detection simulation)
+// AR logic
 AFRAME.registerComponent('ar-logic',{
-  init: function(){
-    showMessage('AR Ready');
-  },
   tick : function(){
     let cam = document.querySelector("#cam");
     let circle = document.querySelector("#circle");
 
-    if(!cam || !circle){return;}
+    if(!cam || !circle) return;
 
     let collision = cam.components.raycaster.getIntersection(this.el);
-    if(!collision){return;}
+    if(!collision) return;
 
-    // Move circle to detected point
     circle.setAttribute('position', collision.point);
   }
 });
 
-// 📌 Interaction logic
-let placed = false;
-let opened = false;
-
+// ✨ MAGIC EFFECT
 window.addEventListener('touchstart', function(){
 
-  let circle = document.querySelector("#circle");
-  let portal = document.querySelector("#portal");
-  let box = document.querySelector("#box");
-  let reward = document.querySelector("#reward");
+  let pos = document.querySelector("#circle").getAttribute('position');
 
-  let pos = circle.getAttribute('position');
+  let effect = document.createElement('a-ring');
 
-  // FIRST TAP → place portal + box
-  if(!placed){
+  effect.setAttribute('position', pos);
+  effect.setAttribute('rotation', '-90 0 0');
 
-    portal.setAttribute('position', pos);
-    portal.setAttribute('visible', true);
+  effect.setAttribute('radius-inner', '0.05');
+  effect.setAttribute('radius-outer', '0.06');
 
-    box.setAttribute('position', {
-      x: pos.x,
-      y: pos.y + 0.3,
-      z: pos.z
-    });
-    box.setAttribute('visible', true);
+  effect.setAttribute('color', '#00ffff');
+  effect.setAttribute('opacity', '0.8');
 
-    placed = true;
-    showMessage("Portal Placed 🌌");
-  }
+  effect.setAttribute('animation__scale', {
+    property: 'scale',
+    to: '3 3 3',
+    dur: 800,
+    easing: 'easeOutQuad'
+  });
 
-  // SECOND TAP → open box
-  else if(!opened){
+  effect.setAttribute('animation__fade', {
+    property: 'opacity',
+    to: '0',
+    dur: 800
+  });
 
-    box.setAttribute('scale', '1 0.2 1');
+  setTimeout(() => {
+    effect.parentNode.removeChild(effect);
+  }, 800);
 
-    reward.setAttribute('position', {
-      x: pos.x,
-      y: pos.y + 1,
-      z: pos.z
-    });
-    reward.setAttribute('visible', true);
-
-    opened = true;
-    showMessage("Box Opened 🎁");
-  }
+  document.querySelector('a-scene').appendChild(effect);
 
 });
 </script>
@@ -95,16 +71,9 @@ window.addEventListener('touchstart', function(){
 <a-scene ar ar-logic>
 
   <!-- Camera -->
-  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
-    <a-text id="hud"
-      value="Initializing..."
-      position="0 -0.1 -0.3"
-      align="center"
-      width="2">
-    </a-text>
-  </a-camera>
+  <a-camera id="cam" ar-raycaster raycaster="objects:none;"></a-camera>
 
-  <!-- Placement Indicator -->
+  <!-- Placement indicator -->
   <a-ring
     id="circle"
     rotation="-90 0 0"
@@ -112,35 +81,6 @@ window.addEventListener('touchstart', function(){
     radius-outer="0.02"
     color="white">
   </a-ring>
-
-  <!-- 🌌 Portal -->
-  <a-ring
-    id="portal"
-    rotation="-90 0 0"
-    radius-inner="0.4"
-    radius-outer="0.6"
-    color="#00ffff"
-    visible="false"
-    animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
-  </a-ring>
-
-  <!-- 🎁 Box -->
-  <a-box
-    id="box"
-    color="gold"
-    depth="0.3"
-    height="0.3"
-    width="0.3"
-    visible="false">
-  </a-box>
-
-  <!-- ✨ Reward -->
-  <a-sphere
-    id="reward"
-    color="red"
-    radius="0.15"
-    visible="false">
-  </a-sphere>
 
 </a-scene>
 
