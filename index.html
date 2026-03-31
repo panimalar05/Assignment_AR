@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Falling Game</title>
+<title>AR Game Final</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -15,13 +15,7 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// 🔹 HUD
-function showMessage(message){
-  let hud = document.querySelector("#hud");
-  if(hud) hud.setAttribute('value', message);
-}
-
-// 🔹 AR logic (same as your working code)
+// AR logic (same working one)
 AFRAME.registerComponent('ar-logic',{
   tick : function(){
     let cam = document.querySelector("#cam");
@@ -35,11 +29,9 @@ AFRAME.registerComponent('ar-logic',{
   }
 });
 
-// 🔹 Game variables
+// game
 let score = 0;
-let falling = false;
 
-// 🔹 Spawn object (SIMPLE + SAFE)
 function spawnObject(pos){
   let target = document.querySelector("#target");
 
@@ -50,48 +42,31 @@ function spawnObject(pos){
   });
 
   target.setAttribute('visible', true);
-
-  // falling
-  target.setAttribute('animation', {
-    property: 'position',
-    to: `${pos.x} ${pos.y} ${pos.z}`,
-    dur: 1500,
-    easing: 'linear'
-  });
-
-  falling = true;
-
-  setTimeout(() => {
-    if(falling){
-      target.setAttribute('visible', false);
-      falling = false;
-    }
-  }, 1500);
 }
 
-// 🔹 IMPORTANT: use touchstart (your setup worked with it earlier)
-window.addEventListener('touchstart', function(){
+// 🎯 LOOK TO COLLECT (NO CLICK NEEDED)
+AFRAME.registerComponent('collect', {
+  init: function () {
+    this.el.addEventListener('mouseenter', () => {
 
-  showMessage("Tapped!");
+      this.el.setAttribute('visible', false);
 
+      score++;
+      document.querySelector("#score")
+        .setAttribute('value', "Score: " + score);
+    });
+  }
+});
+
+// spawn automatically every 2 sec
+setInterval(() => {
   let circle = document.querySelector("#circle");
-  let target = document.querySelector("#target");
+  if(!circle) return;
 
   let pos = circle.getAttribute('position');
+  spawnObject(pos);
+}, 2000);
 
-  if(!falling){
-    spawnObject(pos);
-  }
-  else {
-    target.setAttribute('visible', false);
-    falling = false;
-
-    score++;
-    document.querySelector("#score")
-      .setAttribute('value', "Score: " + score);
-  }
-
-});
 </script>
 
 <a-scene ar ar-logic>
@@ -99,18 +74,13 @@ window.addEventListener('touchstart', function(){
   <!-- Camera -->
   <a-camera id="cam" ar-raycaster raycaster="objects:none;">
 
+    <!-- Cursor (IMPORTANT) -->
+    <a-cursor fuse="true" fuse-timeout="800"></a-cursor>
+
     <!-- Score -->
     <a-text id="score"
       value="Score: 0"
       position="0 -0.2 -0.5"
-      align="center"
-      width="2">
-    </a-text>
-
-    <!-- HUD -->
-    <a-text id="hud"
-      value="Starting..."
-      position="0 -0.3 -0.5"
       align="center"
       width="2">
     </a-text>
@@ -126,12 +96,13 @@ window.addEventListener('touchstart', function(){
     color="white">
   </a-ring>
 
-  <!-- Falling object -->
+  <!-- Target -->
   <a-sphere
     id="target"
     radius="0.15"
     color="yellow"
-    visible="false">
+    visible="false"
+    collect>
   </a-sphere>
 
 </a-scene>
