@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Gaze Game</title>
+<title>AR Tap Game</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -15,7 +15,7 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// 🔹 AR surface detection (your working logic)
+// ✅ AR surface tracking (KEEP SAME)
 AFRAME.registerComponent('ar-logic',{
   tick : function(){
     let cam = document.querySelector("#cam");
@@ -29,49 +29,38 @@ AFRAME.registerComponent('ar-logic',{
   }
 });
 
-// 🔹 Game variables
+// 🎯 Game
 let score = 0;
 
-// 🔹 Spawn object
+// spawn object
 function spawnObject(){
-  let circle = document.querySelector("#circle");
   let target = document.querySelector("#target");
 
-  if(!circle || !target) return;
-
-  let pos = circle.getAttribute('position');
-
-  target.setAttribute('position', {
-    x: pos.x,
-    y: pos.y + 0.5,
-    z: pos.z
-  });
-
+  // ALWAYS place in front (VISIBLE GUARANTEED)
+  target.setAttribute('position', '0 1 -2');
   target.setAttribute('visible', true);
 }
 
-// 🔹 Gaze interaction (NO CLICK NEEDED)
+// tap to collect (ATTACHED TO OBJECT — IMPORTANT)
 AFRAME.registerComponent('collect', {
   init: function () {
-    this.el.addEventListener('mouseenter', () => {
+    this.el.addEventListener('click', () => {
 
-      // hide object
       this.el.setAttribute('visible', false);
 
-      // update score
       score++;
       document.querySelector("#score")
         .setAttribute('value', "Score: " + score);
 
-      // respawn after delay
+      // respawn
       setTimeout(() => {
         spawnObject();
-      }, 1000);
+      }, 800);
     });
   }
 });
 
-// 🔹 First spawn after AR starts
+// first spawn
 setTimeout(() => {
   spawnObject();
 }, 2000);
@@ -80,13 +69,13 @@ setTimeout(() => {
 
 <a-scene ar ar-logic>
 
-  <!-- 📷 Camera -->
-  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
+  <!-- Camera -->
+  <a-camera id="cam" ar-raycaster>
 
-    <!-- 🎯 Cursor (VERY IMPORTANT) -->
-    <a-cursor fuse="true" fuse-timeout="800"></a-cursor>
+    <!-- Cursor -->
+    <a-cursor></a-cursor>
 
-    <!-- 📊 Score -->
+    <!-- Score -->
     <a-text id="score"
       value="Score: 0"
       position="0 -0.2 -0.5"
@@ -96,7 +85,7 @@ setTimeout(() => {
 
   </a-camera>
 
-  <!-- 📍 Surface indicator -->
+  <!-- Circle -->
   <a-ring
     id="circle"
     rotation="-90 0 0"
@@ -105,10 +94,10 @@ setTimeout(() => {
     color="white">
   </a-ring>
 
-  <!-- 🟡 Target object -->
+  <!-- Target -->
   <a-sphere
     id="target"
-    radius="0.15"
+    radius="0.2"
     color="yellow"
     visible="false"
     collect>
