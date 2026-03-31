@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Gaze Game Final</title>
+<title>AR Final Game</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -17,29 +17,32 @@ body { margin: 0; overflow: hidden; }
 <script>
 let score = 0;
 
-// 🎯 Spawn with RANDOM + FLOAT
+// 🎯 FLOAT COMPONENT (WORKS IN AR)
+AFRAME.registerComponent('float', {
+  schema: { speed: {default: 0.002} },
+  init: function () {
+    this.startY = this.el.object3D.position.y;
+    this.t = 0;
+  },
+  tick: function () {
+    this.t += this.data.speed;
+    let newY = this.startY + Math.sin(this.t) * 0.2;
+    this.el.object3D.position.y = newY;
+  }
+});
+
+// 🎯 SPAWN RANDOM
 function spawnObject(){
   let target = document.querySelector("#target");
 
-  // random position
   let x = (Math.random() - 0.5) * 2;
   let y = (Math.random() - 0.5) * 1;
 
   target.setAttribute('position', `${x} ${y} -1.5`);
   target.setAttribute('visible', true);
-
-  // floating animation
-  target.setAttribute('animation', {
-    property: 'position',
-    to: `${x} ${y + 0.3} -1.5`,
-    dir: 'alternate',
-    loop: true,
-    dur: 1000,
-    easing: 'easeInOutQuad'
-  });
 }
 
-// 👀 Gaze collect
+// 👀 GAZE COLLECT
 AFRAME.registerComponent('collect', {
   init: function () {
     this.el.addEventListener('mouseenter', () => {
@@ -50,7 +53,6 @@ AFRAME.registerComponent('collect', {
       document.querySelector("#score")
         .setAttribute('value', "Score: " + score);
 
-      // respawn
       setTimeout(() => {
         spawnObject();
       }, 800);
@@ -73,7 +75,7 @@ setTimeout(() => {
     <!-- 🎯 Cursor -->
     <a-cursor fuse="true" fuse-timeout="800"></a-cursor>
 
-    <!-- 📊 Score (FIXED) -->
+    <!-- 📊 Score -->
     <a-text id="score"
       value="Score: 0"
       position="0 0 -1"
@@ -90,6 +92,7 @@ setTimeout(() => {
     radius="0.2"
     color="yellow"
     visible="false"
+    float
     collect>
   </a-sphere>
 
