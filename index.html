@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Final Game - Upgraded</title>
+<title>AR Final Game - Fixed</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -31,20 +31,29 @@ AFRAME.registerComponent('float', {
   }
 });
 
-// 🎯 SPAWN OBJECT (FIXED COLOR CLEANLY)
+// 🎯 RANDOM COLOR FUNCTION (FORCED UPDATE FIX)
+function getRandomColor() {
+  const colors = ["red", "yellow", "green", "blue", "pink", "orange", "purple", "cyan"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// 🎯 SPAWN OBJECT (FIXED RANDOM POSITION + COLOR)
 function spawnObject() {
   let target = document.querySelector("#target");
 
-  let x = (Math.random() - 0.5) * 1.2;
-  let y = (Math.random() - 0.5) * 0.8;
+  let x = (Math.random() - 0.5) * 2;   // wider range
+  let y = (Math.random() - 0.5) * 1.2;
 
-  let colors = ["red", "yellow", "green", "blue", "pink", "orange"];
-  let randomColor = colors[Math.floor(Math.random() * colors.length)];
+  let color = getRandomColor();
 
-  target.setAttribute("position", `${x} ${y} -1.5`);
-  target.setAttribute("color", randomColor);
-  target.setAttribute("visible", true);
-  target.setAttribute("scale", "1 1 1");
+  target.setAttribute("visible", false); // force refresh first
+
+  setTimeout(() => {
+    target.setAttribute("position", `${x} ${y} -1.5`);
+    target.setAttribute("color", color);
+    target.setAttribute("scale", "1 1 1");
+    target.setAttribute("visible", true);
+  }, 50);
 }
 
 // 🎯 COLLECT LOGIC
@@ -52,7 +61,6 @@ AFRAME.registerComponent('collect', {
   init: function () {
     this.el.addEventListener('mouseenter', () => {
 
-      // pop animation
       this.el.setAttribute('scale', '0.4 0.4 0.4');
 
       setTimeout(() => {
@@ -62,8 +70,7 @@ AFRAME.registerComponent('collect', {
       // score update
       score++;
 
-      // FIXED SCOREBOARD UPDATE (CENTER HUD)
-      document.querySelector("#score").setAttribute(
+      document.querySelector("#scoreText").setAttribute(
         "value",
         "Score: " + score
       );
@@ -73,22 +80,19 @@ AFRAME.registerComponent('collect', {
       sound.currentTime = 0;
       sound.play();
 
-      // difficulty increase spawn speed
       let delay = Math.max(300, 900 - score * 25);
 
-      setTimeout(() => {
-        spawnObject();
-      }, delay);
+      setTimeout(spawnObject, delay);
     });
   }
 });
 
-// first spawn
-setTimeout(spawnObject, 1500);
+// start
+setTimeout(spawnObject, 1000);
 
 </script>
 
-<!-- 🔊 AUDIO -->
+<!-- 🔊 SOUND -->
 <audio id="popSound"
   src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2b5c8f3b.mp3">
 </audio>
@@ -96,13 +100,15 @@ setTimeout(spawnObject, 1500);
 <a-scene ar>
 
   <!-- 📷 CAMERA -->
-  <a-camera>
+  <a-camera look-controls="enabled: false">
+
     <a-cursor fuse="true" fuse-timeout="700"></a-cursor>
+
   </a-camera>
 
-  <!-- 📊 FIXED HUD SCORE (CENTER OF SCREEN) -->
-  <a-entity position="0 1.6 -2">
-    <a-text id="score"
+  <!-- 📊 TRUE CENTER HUD SCORE -->
+  <a-entity position="0 0 -1">
+    <a-text id="scoreText"
       value="Score: 0"
       align="center"
       color="yellow"
