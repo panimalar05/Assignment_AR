@@ -15,7 +15,7 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// surface detection
+// 🔹 Surface detection
 AFRAME.registerComponent('ar-logic',{
   tick : function(){
     let cam = document.querySelector("#cam");
@@ -23,38 +23,41 @@ AFRAME.registerComponent('ar-logic',{
 
     if(!cam || !circle) return;
 
-    let collision = cam.components.raycaster.getIntersection(this.el);
-    if(!collision) return;
+    let intersection = cam.components.raycaster.getIntersection(this.el);
+    if(!intersection) return;
 
-    circle.setAttribute('position', collision.point);
+    circle.setAttribute('position', intersection.point);
   }
 });
 
-// game variables
+// 🔹 Game variables
 let score = 0;
 let falling = false;
 
-// spawn falling object
+// 🔹 Spawn object (FIXED POSITION LOGIC)
 function spawnObject(pos){
   let target = document.querySelector("#target");
 
+  // Always spawn slightly in front of camera view
   target.setAttribute('position', {
     x: pos.x,
-    y: pos.y + 1.5,
-    z: pos.z
+    y: pos.y + 1,
+    z: pos.z - 1
   });
 
   target.setAttribute('visible', true);
 
+  // Falling animation
   target.setAttribute('animation', {
     property: 'position',
-    to: `${pos.x} ${pos.y} ${pos.z}`,
+    to: `${pos.x} ${pos.y} ${pos.z - 1}`,
     dur: 2000,
     easing: 'linear'
   });
 
   falling = true;
 
+  // Auto disappear if missed
   setTimeout(() => {
     if(falling){
       target.setAttribute('visible', false);
@@ -63,8 +66,10 @@ function spawnObject(pos){
   }, 2000);
 }
 
-// tap logic
-document.querySelector('a-scene').addEventListener('click', function(){
+// 🔹 Tap event (WORKS IN AR)
+document.addEventListener('click', function(){
+
+  console.log("Tapped"); // debug
 
   let circle = document.querySelector("#circle");
   let target = document.querySelector("#target");
@@ -88,8 +93,8 @@ document.querySelector('a-scene').addEventListener('click', function(){
 
 <a-scene ar ar-logic>
 
-  <!-- camera -->
-  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
+  <!-- Camera -->
+  <a-camera id="cam" ar-raycaster>
 
     <a-text id="score"
       value="Score: 0"
@@ -100,18 +105,28 @@ document.querySelector('a-scene').addEventListener('click', function(){
 
   </a-camera>
 
-  <!-- surface indicator -->
-  <a-ring id="circle"
+  <!-- Invisible ground (IMPORTANT for raycasting) -->
+  <a-plane 
     rotation="-90 0 0"
-    radius-inner="0.01"
-    radius-outer="0.02"
+    width="50"
+    height="50"
+    visible="false">
+  </a-plane>
+
+  <!-- Surface indicator -->
+  <a-ring
+    id="circle"
+    rotation="-90 0 0"
+    radius-inner="0.02"
+    radius-outer="0.03"
     color="white">
   </a-ring>
 
-  <!-- falling object -->
-  <a-sphere id="target"
-    radius="0.08"
-    color="red"
+  <!-- Falling object -->
+  <a-sphere
+    id="target"
+    radius="0.15"
+    color="yellow"
     visible="false">
   </a-sphere>
 
