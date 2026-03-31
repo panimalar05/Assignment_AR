@@ -2,38 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Final Game - Neon Score</title>
+<title>AR Final Game - Neon HUD</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
 
 <style>
   body { margin: 0; overflow: hidden; }
-
-  /* 🔥 NEON GLOW EFFECT */
-  .neon {
-    text-shadow:
-      0 0 5px #fff,
-      0 0 10px #00ffff,
-      0 0 20px #00ffff,
-      0 0 40px #00ffff;
-    animation: pulseGlow 1.5s infinite alternate;
-  }
-
-  @keyframes pulseGlow {
-    from { opacity: 0.8; transform: scale(1); }
-    to { opacity: 1; transform: scale(1.05); }
-  }
-
-  /* 💥 POP ANIMATION */
-  .pop {
-    animation: popAnim 0.25s ease;
-  }
-
-  @keyframes popAnim {
-    0%   { transform: scale(1.4); }
-    100% { transform: scale(1); }
-  }
 </style>
 </head>
 
@@ -56,7 +31,7 @@ AFRAME.registerComponent('float', {
   }
 });
 
-// 🎯 RANDOM COLOR
+// 🎨 RANDOM COLOR
 function getRandomColor() {
   const colors = ["red", "yellow", "green", "blue", "pink", "orange", "purple", "cyan"];
   return colors[Math.floor(Math.random() * colors.length)];
@@ -81,7 +56,22 @@ function spawnObject() {
   }, 50);
 }
 
-// 🎯 COLLECT LOGIC + NEON POP SCORE
+// 💥 POP ANIMATION FOR SCORE
+function popScore() {
+  const scoreEl = document.querySelector("#scoreText");
+
+  scoreEl.removeAttribute("animation");
+
+  scoreEl.setAttribute("animation", {
+    property: "scale",
+    from: "1.6 1.6 1.6",
+    to: "1 1 1",
+    dur: 200,
+    easing: "easeOutQuad"
+  });
+}
+
+// 🎯 COLLECT LOGIC
 AFRAME.registerComponent('collect', {
   init: function () {
     this.el.addEventListener('mouseenter', () => {
@@ -95,14 +85,10 @@ AFRAME.registerComponent('collect', {
       // score update
       score++;
 
-      const scoreEl = document.querySelector("#scoreText");
-
+      let scoreEl = document.querySelector("#scoreText");
       scoreEl.setAttribute("value", "Score: " + score);
 
-      // 💥 POP ANIMATION TRIGGER
-      scoreEl.classList.remove("pop");
-      void scoreEl.offsetWidth; // restart animation
-      scoreEl.classList.add("pop");
+      popScore();
 
       // sound
       let sound = document.querySelector("#popSound");
@@ -116,7 +102,7 @@ AFRAME.registerComponent('collect', {
   }
 });
 
-// start
+// start game
 setTimeout(spawnObject, 1000);
 
 </script>
@@ -130,15 +116,18 @@ setTimeout(spawnObject, 1000);
 
   <!-- 📷 CAMERA -->
   <a-camera look-controls="enabled: false">
+
     <a-cursor fuse="true" fuse-timeout="700"></a-cursor>
 
-    <!-- 📊 HUD SCORE -->
+    <!-- 📊 FIXED HUD SCORE -->
     <a-entity position="0 0 -1">
       <a-text id="scoreText"
         value="Score: 0"
         align="center"
         color="#00ffff"
-        width="4">
+        width="4"
+        shader="msdf"
+        material="emissive: #00ffff; emissiveIntensity: 1">
       </a-text>
     </a-entity>
 
