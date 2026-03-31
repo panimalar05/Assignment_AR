@@ -106,15 +106,21 @@ setTimeout(spawnObject, 1000);
 
   </a-camera>
 
-  <!-- 📊 TRUE CENTER HUD SCORE -->
-  <a-entity position="0 0 -1">
-    <a-text id="scoreText"
-      value="Score: 0"
-      align="center"
-      color="yellow"
-      width="2">
-    </a-text>
-  </a-entity>
+  <!-- 📊 FIXED PERFECT CENTER HUD SCORE -->
+<a-entity
+  position="0 0 -0.5"
+  scale="1.5 1.5 1.5"
+  text-anchor="center">
+
+  <a-text id="scoreText"
+    value="Score: 0"
+    align="center"
+    anchor="center"
+    color="black"
+    width="3">
+  </a-text>
+
+</a-entity>
 
   <!-- 🎯 TARGET -->
   <a-sphere
