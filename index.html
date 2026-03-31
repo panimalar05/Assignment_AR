@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Final Game</title>
+<title>AR Final Working Game</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -15,21 +15,22 @@ body { margin: 0; overflow: hidden; }
 <body>
 
 <script>
-// score
 let score = 0;
 
-// spawn ALWAYS in front of camera
+// spawn in front of camera
 function spawnObject(){
   let target = document.querySelector("#target");
 
-  target.setAttribute('position', '0 0 -1.5'); // 👈 KEY FIX
+  target.setAttribute('position', '0 0 -1.5');
   target.setAttribute('visible', true);
 }
 
-// click collect (ON OBJECT)
+// ✅ THIS IS THE KEY FIX
 AFRAME.registerComponent('collect', {
   init: function () {
-    this.el.addEventListener('click', () => {
+
+    // triggered when cursor stays on object
+    this.el.addEventListener('mouseenter', () => {
 
       this.el.setAttribute('visible', false);
 
@@ -39,12 +40,13 @@ AFRAME.registerComponent('collect', {
 
       setTimeout(() => {
         spawnObject();
-      }, 800);
+      }, 1000);
     });
+
   }
 });
 
-// spawn after start
+// first spawn
 setTimeout(() => {
   spawnObject();
 }, 2000);
@@ -56,8 +58,8 @@ setTimeout(() => {
   <!-- Camera -->
   <a-camera>
 
-    <!-- Cursor -->
-    <a-cursor></a-cursor>
+    <!-- 🔥 FUSE CURSOR (IMPORTANT) -->
+    <a-cursor fuse="true" fuse-timeout="1000"></a-cursor>
 
     <!-- Score -->
     <a-text id="score"
@@ -71,7 +73,7 @@ setTimeout(() => {
   <!-- Target -->
   <a-sphere
     id="target"
-    radius="0.2"
+    radius="0.25"
     color="yellow"
     visible="false"
     collect>
