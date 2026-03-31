@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AR Portal + Box</title>
+
+<!-- A-Frame -->
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+<!-- Your local AR library -->
+<script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
+
+<style>
+body { margin: 0; overflow: hidden; }
+</style>
+</head>
+
+<body>
+
+<script>
+// 📌 HUD message
+function showMessage(message){
+  let hud = document.querySelector("#hud");
+  if(hud) hud.setAttribute('value', message);
+}
+
+// 📌 AR logic (surface detection simulation)
+AFRAME.registerComponent('ar-logic',{
+  init: function(){
+    showMessage('AR Ready');
+  },
+  tick : function(){
+    let cam = document.querySelector("#cam");
+    let circle = document.querySelector("#circle");
+
+    if(!cam || !circle){return;}
+
+    let collision = cam.components.raycaster.getIntersection(this.el);
+    if(!collision){return;}
+
+    // Move circle to detected point
+    circle.setAttribute('position', collision.point);
+  }
+});
+
+// 📌 Interaction logic
+let placed = false;
+let opened = false;
+
+window.addEventListener('touchstart', function(){
+
+  let circle = document.querySelector("#circle");
+  let portal = document.querySelector("#portal");
+  let box = document.querySelector("#box");
+  let reward = document.querySelector("#reward");
+
+  let pos = circle.getAttribute('position');
+
+  // FIRST TAP → place portal + box
+  if(!placed){
+
+    portal.setAttribute('position', pos);
+    portal.setAttribute('visible', true);
+
+    box.setAttribute('position', {
+      x: pos.x,
+      y: pos.y + 0.3,
+      z: pos.z
+    });
+    box.setAttribute('visible', true);
+
+    placed = true;
+    showMessage("Portal Placed 🌌");
+  }
+
+  // SECOND TAP → open box
+  else if(!opened){
+
+    box.setAttribute('scale', '1 0.2 1');
+
+    reward.setAttribute('position', {
+      x: pos.x,
+      y: pos.y + 1,
+      z: pos.z
+    });
+    reward.setAttribute('visible', true);
+
+    opened = true;
+    showMessage("Box Opened 🎁");
+  }
+
+});
+</script>
+
+<a-scene ar ar-logic>
+
+  <!-- Camera -->
+  <a-camera id="cam" ar-raycaster raycaster="objects:none;">
+    <a-text id="hud"
+      value="Initializing..."
+      position="0 -0.1 -0.3"
+      align="center"
+      width="2">
+    </a-text>
+  </a-camera>
+
+  <!-- Placement Indicator -->
+  <a-ring
+    id="circle"
+    rotation="-90 0 0"
+    radius-inner="0.01"
+    radius-outer="0.02"
+    color="white">
+  </a-ring>
+
+  <!-- 🌌 Portal -->
+  <a-ring
+    id="portal"
+    rotation="-90 0 0"
+    radius-inner="0.4"
+    radius-outer="0.6"
+    color="#00ffff"
+    visible="false"
+    animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
+  </a-ring>
+
+  <!-- 🎁 Box -->
+  <a-box
+    id="box"
+    color="gold"
+    depth="0.3"
+    height="0.3"
+    width="0.3"
+    visible="false">
+  </a-box>
+
+  <!-- ✨ Reward -->
+  <a-sphere
+    id="reward"
+    color="red"
+    radius="0.15"
+    visible="false">
+  </a-sphere>
+
+</a-scene>
+
+</body>
+</html>
