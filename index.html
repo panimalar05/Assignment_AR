@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Final Working Game</title>
+<title>AR Gaze Game Final</title>
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
@@ -17,19 +17,31 @@ body { margin: 0; overflow: hidden; }
 <script>
 let score = 0;
 
-// spawn in front of camera
+// 🎯 Spawn with RANDOM + FLOAT
 function spawnObject(){
   let target = document.querySelector("#target");
 
-  target.setAttribute('position', '0 0 -1.5');
+  // random position
+  let x = (Math.random() - 0.5) * 2;
+  let y = (Math.random() - 0.5) * 1;
+
+  target.setAttribute('position', `${x} ${y} -1.5`);
   target.setAttribute('visible', true);
+
+  // floating animation
+  target.setAttribute('animation', {
+    property: 'position',
+    to: `${x} ${y + 0.3} -1.5`,
+    dir: 'alternate',
+    loop: true,
+    dur: 1000,
+    easing: 'easeInOutQuad'
+  });
 }
 
-// ✅ THIS IS THE KEY FIX
+// 👀 Gaze collect
 AFRAME.registerComponent('collect', {
   init: function () {
-
-    // triggered when cursor stays on object
     this.el.addEventListener('mouseenter', () => {
 
       this.el.setAttribute('visible', false);
@@ -38,11 +50,11 @@ AFRAME.registerComponent('collect', {
       document.querySelector("#score")
         .setAttribute('value', "Score: " + score);
 
+      // respawn
       setTimeout(() => {
         spawnObject();
-      }, 1000);
+      }, 800);
     });
-
   }
 });
 
@@ -55,25 +67,27 @@ setTimeout(() => {
 
 <a-scene ar>
 
-  <!-- Camera -->
+  <!-- 📷 Camera -->
   <a-camera>
 
-    <!-- 🔥 FUSE CURSOR (IMPORTANT) -->
-    <a-cursor fuse="true" fuse-timeout="1000"></a-cursor>
+    <!-- 🎯 Cursor -->
+    <a-cursor fuse="true" fuse-timeout="800"></a-cursor>
 
-    <!-- Score -->
+    <!-- 📊 Score (FIXED) -->
     <a-text id="score"
       value="Score: 0"
-      position="0 -0.2 -0.5"
-      align="center">
+      position="0 0 -1"
+      align="center"
+      color="yellow"
+      width="2">
     </a-text>
 
   </a-camera>
 
-  <!-- Target -->
+  <!-- 🟡 Target -->
   <a-sphere
     id="target"
-    radius="0.25"
+    radius="0.2"
     color="yellow"
     visible="false"
     collect>
