@@ -31,7 +31,7 @@ AFRAME.registerComponent('float', {
   }
 });
 
-// 🎯 SPAWN OBJECT
+// 🎯 SPAWN OBJECT (FIXED COLOR CLEANLY)
 function spawnObject() {
   let target = document.querySelector("#target");
 
@@ -61,6 +61,8 @@ AFRAME.registerComponent('collect', {
 
       // score update
       score++;
+
+      // FIXED SCOREBOARD UPDATE (CENTER HUD)
       document.querySelector("#score").setAttribute(
         "value",
         "Score: " + score
@@ -95,20 +97,18 @@ setTimeout(spawnObject, 1500);
 
   <!-- 📷 CAMERA -->
   <a-camera>
-
     <a-cursor fuse="true" fuse-timeout="700"></a-cursor>
-
-    <!-- 📊 HUD SCORE -->
-    <a-entity position="0 0 -1">
-      <a-text id="score"
-        value="Score: 0"
-        align="center"
-        color="yellow"
-        width="2">
-      </a-text>
-    </a-entity>
-
   </a-camera>
+
+  <!-- 📊 FIXED HUD SCORE (CENTER OF SCREEN) -->
+  <a-entity position="0 1.6 -2">
+    <a-text id="score"
+      value="Score: 0"
+      align="center"
+      color="yellow"
+      width="2">
+    </a-text>
+  </a-entity>
 
   <!-- 🎯 TARGET -->
   <a-sphere
